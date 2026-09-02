@@ -1,13 +1,11 @@
 "use client"
 import { useState, useEffect, useRef } from "react";
 
-
 interface Position {
     lat: number;
     lng: number;
     accuracy: number;
 }
-
 
 
 export default function useGeolocation() {
