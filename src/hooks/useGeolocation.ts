@@ -1,18 +1,24 @@
 "use client"
-import { useState, useEffect, useRef } from "react";
+import { useEffect, useState } from "react";
 
 interface Position {
     lat: number;
     lng: number;
-    accuracy: number;
+    accuracy?: number;
 }
 
 
 export default function useGeolocation() {
 
-    const [position, setPosition] = useState<Position | null>(null);
+    const [position, setPosition] = useState<Position>({ lat: 0, lng: 0 });
     const [error, setError] = useState<string | null>(null);
     const [loading, setLoading] = useState(false);
+    const [status, setStatus] = useState("")
+    const [message, setMessage] = useState("")
+    const [isBusy, setIsBusy] = useState<boolean>()
+    const [tracking, setIsTracking] = useState<boolean>()
+    const [fix, setFix] = useState<Position>({ lat: 0, lng: 0 });
+    const watchId = { current: 0 }
 
     // Autoriser et récupérer la position
     const getLocation = () => {
@@ -61,54 +67,56 @@ export default function useGeolocation() {
     }
 
 
+
     // Démarrer le suivi
-    // const startTracking = () => {
-    //     if (!navigator.geolocation) {
-    //         setStatus("unsupported");
-    //         setMessage("Géolocalisation non supportée");
-    //         return;
-    //     }
+    const startTracking = () => {
+        if (!navigator.geolocation) {
+            setStatus("unsupported");
+            setMessage("Géolocalisation non supportée");
+            return;
+        }
 
-    //     setIsBusy(true);
-    //     setIsTracking(true);
-    //     setMessage("Suivi de la position en cours...");
+        setIsBusy(true);
+        setIsTracking(true);
+        setMessage("Suivi de la position en cours...");
 
-    //     watchId.current = navigator.geolocation.watchPosition(
-    //         (position) => {
-    //             const { latitude, longitude } = position.coords;
-    //             setFix({ lat: latitude, lng: longitude });
-    //             setStatus("success");
-    //             setMessage("Position mise à jour");
-    //             setIsBusy(false);
-    //         },
-    //         (err) => {
-    //             setIsBusy(false);
-    //             setStatus("error");
-    //             setMessage(err.message);
-    //             if (err.code === err.PERMISSION_DENIED) {
-    //                 setStatus("denied");
-    //                 setMessage("Autorisation refusée");
-    //                 setIsTracking(false);
-    //             } else {
-    //                 setMessage(`Erreur: ${err.message}`);
-    //             }
-    //         },
-    //         {
-    //             enableHighAccuracy: true,
-    //             timeout: 10000,
-    //             maximumAge: 5000, // Mettre à jour toutes les 5 secondes
-    //         },
-    //     );
-    // };
+        watchId.current = navigator.geolocation.watchPosition(
+            (position) => {
+                const { latitude, longitude } = position.coords;
+                setFix({ lat: latitude, lng: longitude });
+                setStatus("success");
+                setMessage("Position mise à jour");
+                setIsBusy(false);
+
+            },
+            (err) => {
+                setIsBusy(false);
+                setStatus("error");
+                setMessage(err.message);
+                if (err.code === err.PERMISSION_DENIED) {
+                    setStatus("denied");
+                    setMessage("Autorisation refusée");
+                    setIsTracking(false);
+                } else {
+                    setMessage(`Erreur: ${err.message}`);
+                }
+            },
+            {
+                enableHighAccuracy: true,
+                timeout: 10000,
+                maximumAge: 5000, // Mettre à jour toutes les 5 secondes
+            },
+        );
+    };
 
     // Arrêter le suivi
-    // const stopTracking = () => {
-    //     if (watchId.current !== null && navigator.geolocation) {
-    //         navigator.geolocation.clearWatch(watchId.current);
-    //         watchId.current = null;
-    //     }
-    //     setIsTracking(false);
-    // };
+    const stopTracking = () => {
+        if (watchId.current !== null && navigator.geolocation) {
+            navigator.geolocation.clearWatch(watchId.current);
+            watchId.current = null;
+        }
+        setIsTracking(false);
+    };
 
     // Démarrage automatique si activé
     // useEffect(() => {
@@ -119,15 +127,19 @@ export default function useGeolocation() {
     // }, [auto]);
 
     // Nettoyage au démontage
-    // useEffect(() => {
-    //     return () => {
-    //         if (watchId.current !== null) {
-    //             navigator.geolocation.clearWatch(watchId.current);
-    //         }
-    //     };
-    // }, []);
+    useEffect(() => {
+        return () => {
+            if (watchId.current !== null) {
+                navigator.geolocation.clearWatch(watchId.current);
+            }
+        };
+    }, []);
 
     return {
+        message,
+        watchId,
+        fix,
+        startTracking,
         getLocation,
         position,
         loading

@@ -1,12 +1,14 @@
 "use client"
-import { LocateFixedIcon, MapPin, TriangleAlertIcon } from "lucide-react";
-import useGeolocation from "@/hooks/useGeolocation";
 import { Button } from "@/components/ui/button";
+import useGeolocation from "@/hooks/useGeolocation";
+import { LocateFixedIcon, MapPin } from "lucide-react";
 
 export default function ReportForm() {
 
-    const { getLocation, position, loading } = useGeolocation()
-    const { lat, lng } = position || {}
+    const { getLocation, startTracking, position, loading, fix, watchId, message } = useGeolocation()
+    const { lat, lng } = fix || {}
+    console.log(watchId.current);
+    console.log(message);
 
     return (
         <form
@@ -33,14 +35,15 @@ export default function ReportForm() {
 
                 <div aria-live="polite" className="flex flex-col gap-2">
 
-                    <Button disabled={loading} type="button" variant="outline" size="sm" onClick={getLocation}>
+                    <Button disabled={loading} type="button" variant="outline" size="sm" onClick={startTracking}>
                         <MapPin className="mr-2 h-4 w-4" />
                         Utiliser ma position actuelle
                     </Button>
                     <p className="flex flex-wrap items-center gap-x-3 gap-y-1 font-mono text-[10px] uppercase tracking-widest text-muted-foreground">
                         <span className="flex items-center gap-1.5">
                             <MapPin className="size-3" aria-hidden="true" />
-                            {lat && lng ? `${lat} / ${lng}` : "Chargement..."}
+                            {loading ? "Chargement..." : `${lat} lat / ${lng} lng`}
+
                         </span>
                     </p>
 
