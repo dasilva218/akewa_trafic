@@ -5,7 +5,7 @@ import { LocateFixedIcon, MapPin } from "lucide-react";
 
 export default function ReportForm() {
 
-    const { getLocation, startTracking, position, loading, fix, watchId, message } = useGeolocation()
+    const { startTracking, tracking, loading, fix, watchId, message } = useGeolocation()
     const { lat, lng } = fix || {}
     console.log(watchId.current);
     console.log(message);
@@ -29,12 +29,11 @@ export default function ReportForm() {
 
                     <span className="flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-widest text-primary">
                         <span className="pulse-dot size-2 rounded-full bg-primary" aria-hidden="true" />
-                        {/* {isTracking ? "Suivi actif" : "Détectée"} */}
+                        {tracking ? "Suivi actif" : "Non suivis"}
                     </span>
                 </div>
 
                 <div aria-live="polite" className="flex flex-col gap-2">
-
                     <Button disabled={loading} type="button" variant="outline" size="sm" onClick={startTracking}>
                         <MapPin className="mr-2 h-4 w-4" />
                         Utiliser ma position actuelle
@@ -43,11 +42,8 @@ export default function ReportForm() {
                         <span className="flex items-center gap-1.5">
                             <MapPin className="size-3" aria-hidden="true" />
                             {loading ? "Chargement..." : `${lat} lat / ${lng} lng`}
-
                         </span>
                     </p>
-
-
                 </div>
 
             </section>

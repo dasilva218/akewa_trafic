@@ -10,63 +10,13 @@ interface Position {
 
 export default function useGeolocation() {
 
-    const [position, setPosition] = useState<Position>({ lat: 0, lng: 0 });
-    const [error, setError] = useState<string | null>(null);
     const [loading, setLoading] = useState(false);
     const [status, setStatus] = useState("")
     const [message, setMessage] = useState("")
     const [isBusy, setIsBusy] = useState<boolean>()
-    const [tracking, setIsTracking] = useState<boolean>()
+    const [tracking, setIsTracking] = useState<boolean>(false)
     const [fix, setFix] = useState<Position>({ lat: 0, lng: 0 });
     const watchId = { current: 0 }
-
-    // Autoriser et récupérer la position
-    const getLocation = () => {
-
-        if (!navigator.geolocation) {
-            setError("La géolocalisation n'est pas supportée par ce navigateur.");
-            return;
-        }
-
-        setLoading(true);
-        setError(null);
-
-        navigator.geolocation.getCurrentPosition(
-            (pos) => {
-                setPosition({
-                    lat: pos.coords.latitude,
-                    lng: pos.coords.longitude,
-                    accuracy: pos.coords.accuracy,
-                });
-                setLoading(false);
-            },
-            (err) => {
-                switch (err.code) {
-                    case err.PERMISSION_DENIED:
-                        setError("Vous avez refusé l'accès à la position.");
-                        break;
-                    case err.POSITION_UNAVAILABLE:
-                        setError("Position indisponible.");
-                        break;
-                    case err.TIMEOUT:
-                        setError("Délai dépassé pour récupérer la position.");
-                        break;
-                    default:
-                        setError("Erreur inconnue.");
-                }
-                setLoading(false);
-            },
-            {
-                enableHighAccuracy: true, // Utilise GPS si disponible (mobile)
-                timeout: 10000,
-                maximumAge: 0, // Ne pas utiliser une position en cache
-            }
-        )
-
-
-    }
-
-
 
     // Démarrer le suivi
     const startTracking = () => {
@@ -76,31 +26,13 @@ export default function useGeolocation() {
             return;
         }
 
-        setIsBusy(true);
-        setIsTracking(true);
+        setLoading(true);
+        // setIsTracking(true);
         setMessage("Suivi de la position en cours...");
 
         watchId.current = navigator.geolocation.watchPosition(
-            (position) => {
-                const { latitude, longitude } = position.coords;
-                setFix({ lat: latitude, lng: longitude });
-                setStatus("success");
-                setMessage("Position mise à jour");
-                setIsBusy(false);
-
-            },
-            (err) => {
-                setIsBusy(false);
-                setStatus("error");
-                setMessage(err.message);
-                if (err.code === err.PERMISSION_DENIED) {
-                    setStatus("denied");
-                    setMessage("Autorisation refusée");
-                    setIsTracking(false);
-                } else {
-                    setMessage(`Erreur: ${err.message}`);
-                }
-            },
+            getPosition,
+            showError,
             {
                 enableHighAccuracy: true,
                 timeout: 10000,
@@ -109,11 +41,38 @@ export default function useGeolocation() {
         );
     };
 
+    // Recuperation de la position
+    function getPosition(position: GeolocationPosition) {
+        const { latitude, longitude } = position.coords;
+        setFix({ lat: latitude, lng: longitude });
+        setStatus("success");
+        setMessage("Position mise à jour");
+        setIsTracking(true);
+        setLoading(false);
+    }
+
+    // Gestion des erreurs
+    function showError(error: GeolocationPositionError) {
+        switch (error.code) {
+            case error.PERMISSION_DENIED:
+                setMessage("Autorisation refusée")
+                break;
+            case error.POSITION_UNAVAILABLE:
+                setMessage("Position indisponible")
+                break;
+            case error.TIMEOUT:
+                setMessage("Délai dépassé pour récupérer la position")
+                break;
+            default:
+                setMessage("Une erreur inconnue s'est produite.")
+                break;
+        }
+    }
+
     // Arrêter le suivi
     const stopTracking = () => {
         if (watchId.current !== null && navigator.geolocation) {
             navigator.geolocation.clearWatch(watchId.current);
-            watchId.current = null;
         }
         setIsTracking(false);
     };
@@ -140,8 +99,7 @@ export default function useGeolocation() {
         watchId,
         fix,
         startTracking,
-        getLocation,
-        position,
-        loading
+        loading,
+        tracking
     };
 }
