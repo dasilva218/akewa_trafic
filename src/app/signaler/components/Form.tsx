@@ -5,11 +5,8 @@ import { LocateFixedIcon, MapPin } from "lucide-react";
 
 export default function ReportForm() {
 
-    const { startTracking, tracking, loading, fix, watchId, message } = useGeolocation()
-    const { lat, lng } = fix || {}
-    console.log(watchId.current);
-    console.log(message);
-
+    const { startTracking, tracking, loading, fix } = useGeolocation()
+    const { latitude, longitude } = fix || {}
     return (
         <form
             className="flex flex-col gap-6 border-b border-border p-4 md:p-6 lg:border-b-0 lg:border-r"
@@ -41,7 +38,7 @@ export default function ReportForm() {
                     <p className="flex flex-wrap items-center gap-x-3 gap-y-1 font-mono text-[10px] uppercase tracking-widest text-muted-foreground">
                         <span className="flex items-center gap-1.5">
                             <MapPin className="size-3" aria-hidden="true" />
-                            {loading ? "Chargement..." : `${lat} lat / ${lng} lng`}
+                            {loading ? "Chargement..." : `${latitude} lat / ${longitude} lng`}
                         </span>
                     </p>
                 </div>
