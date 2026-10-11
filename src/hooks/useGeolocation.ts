@@ -71,8 +71,6 @@ export default function useGeolocation() {
                 );
             }
             toast.success("Position envoyée avec succès", { position: "top-center" });
-            console.log("Position envoyée avec succès :", data.status);
-
         } catch (error) {
             toast.error("Erreur lors de l'envoi de la position", { position: "top-center" });
         }
